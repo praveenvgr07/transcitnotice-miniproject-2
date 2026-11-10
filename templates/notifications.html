@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div style="background:linear-gradient(135deg,var(--navy-dark),var(--navy));padding:2rem 0 1rem;">
+  <div class="container d-flex align-items-center justify-content-between">
+    <div>
+      <h1 class="text-white fw-800 mb-0" style="font-size:1.6rem;">
+        <i class="bi bi-bell-fill me-2"></i>Notifications
+      </h1>
+      <p style="color:rgba(255,255,255,.7);font-size:.9rem;">{{ unread_count }} unread</p>
+    </div>
+    {% if unread_count > 0 %}
+    <button id="btn-mark-all-read" class="btn btn-outline-light btn-sm">
+      <i class="bi bi-check2-all me-1"></i>Mark All Read
+    </button>
+    {% endif %}
+  </div>
+</div>
+
+<div class="container py-4" style="max-width:720px;">
+  {% if notifications %}
+  <div class="card-transit">
+    {% for n in notifications %}
+    <div class="notif-item {% if not n.is_read %}unread{% endif %}"
+         data-notif-id="{{ n.id }}" data-mark-read="{{ n.id }}">
+      <div class="d-flex align-items-start gap-3">
+        <div style="width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+          {% if n.notification_type == 'schedule_change' %}background:#fee2e2;color:#991b1b;
+          {% elif n.notification_type == 'booking_confirm' %}background:#dcfce7;color:#15803d;
+          {% else %}background:#e0f2fe;color:#0369a1;{% endif %}">
+          <i class="bi {% if n.notification_type == 'schedule_change' %}bi-exclamation-triangle-fill
+                        {% elif n.notification_type == 'booking_confirm' %}bi-check-circle-fill
+                        {% else %}bi-info-circle-fill{% endif %}"></i>
+        </div>
+        <div class="flex-grow-1">
+          <div class="notif-title">{{ n.title }}</div>
+          <div class="text-muted small mt-1">{{ n.message }}</div>
+          <div class="notif-meta">
+            {{ n.created_at.strftime('%d %b %Y · %H:%M') if n.created_at else '' }}
+            {% if not n.is_read %}
+            <span class="ms-2 status-badge status-pending">Unread</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state py-5">
+    <i class="bi bi-bell d-block fs-1 mb-3"></i>
+    <h5 class="text-muted">No notifications yet</h5>
+    <p class="text-muted small">
+      You'll receive alerts here when schedule changes affect your journeys.
+    </p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+{% endblock %}

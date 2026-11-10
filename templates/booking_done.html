@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Booking Confirmed{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:620px;">
+  <!-- Steps -->
+  <div class="booking-steps mb-5">
+    <div class="booking-step done"><div class="step-circle"><i class="bi bi-check"></i></div><div class="step-label">Journey</div></div>
+    <div class="booking-step done"><div class="step-circle"><i class="bi bi-check"></i></div><div class="step-label">Passengers</div></div>
+    <div class="booking-step done"><div class="step-circle"><i class="bi bi-check"></i></div><div class="step-label">Confirm</div></div>
+    <div class="booking-step active"><div class="step-circle"><i class="bi bi-check"></i></div><div class="step-label">Done</div></div>
+  </div>
+
+  {% if booking %}
+  <div class="text-center mb-4">
+    <div style="width:80px;height:80px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:2.2rem;">
+      ✅
+    </div>
+    <h1 class="fw-800" style="color:var(--navy);font-size:1.8rem;">Journey Noted!</h1>
+    <p class="text-muted">Your booking has been recorded in TransitNotice.</p>
+
+    <div style="background:var(--light-blue);border-radius:12px;padding:1.5rem;margin:1.5rem 0;display:inline-block;min-width:260px;">
+      <div class="text-muted small">Booking Reference</div>
+      <div style="font-size:1.6rem;font-weight:800;color:var(--navy);letter-spacing:1px;">
+        {{ booking.booking_reference }}
+      </div>
+    </div>
+  </div>
+
+  <div class="card-transit mb-3">
+    <div class="card-body">
+      <table class="table table-sm mb-0">
+        <tr><td class="text-muted">Provider</td><td class="fw-600">{{ booking.provider }}</td></tr>
+        <tr><td class="text-muted">Route</td><td class="fw-600">{{ booking.route_number }}</td></tr>
+        <tr><td class="text-muted">Journey Date</td><td class="fw-600">{{ booking.journey_date }}</td></tr>
+        <tr><td class="text-muted">From</td><td class="fw-600">{{ booking.origin_stop }}</td></tr>
+        <tr><td class="text-muted">To</td><td class="fw-600">{{ booking.destination_stop }}</td></tr>
+        <tr><td class="text-muted">Passengers</td><td class="fw-600">{{ booking.passenger_count }}</td></tr>
+        <tr><td class="text-muted">Status</td>
+            <td><span class="bk-status bk-{{ booking.booking_status }}">{{ booking.booking_status.title() }}</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  {% if passengers %}
+  <div class="card-transit mb-4">
+    <div class="card-header-custom"><i class="bi bi-people me-2"></i>Passenger Summary</div>
+    <div class="card-body p-0">
+      {% for p in passengers %}
+      <div class="d-flex align-items-center gap-3 p-3 border-bottom">
+        <div class="stat-icon stat-icon-blue" style="width:32px;height:32px;border-radius:8px;font-size:.8rem;">{{ loop.index }}</div>
+        <div class="fw-600 small">{{ p.name }}</div>
+        {% if p.age %}<span class="text-muted small">Age {{ p.age }}</span>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="alert-transit alert-transit-info mb-4">
+    <i class="bi bi-info-circle-fill"></i>
+    <div class="small">
+      A confirmation has been sent to your registered email and mobile number.
+      You will receive automatic alerts if any schedule changes affect this journey.
+    </div>
+  </div>
+
+  <div class="d-flex gap-3 justify-content-center flex-wrap">
+    <a href="{{ url_for('user.booking_history') }}" class="btn btn-outline-primary">
+      <i class="bi bi-ticket-perforated me-2"></i>My Bookings
+    </a>
+    <a href="{{ url_for('transport.search') }}" class="btn btn-search">
+      <i class="bi bi-search me-2"></i>Search More Services
+    </a>
+  </div>
+
+  {% else %}
+  <div class="empty-state text-center">
+    <i class="bi bi-x-circle d-block fs-1 mb-3" style="color:var(--danger);opacity:.7;"></i>
+    <h5>Booking not found</h5>
+    <a href="{{ url_for('transport.search') }}" class="btn btn-outline-primary mt-3">Back to Search</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

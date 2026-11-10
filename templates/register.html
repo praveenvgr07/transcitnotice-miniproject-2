@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="form-card" style="max-width:520px;">
+    <div class="text-center mb-4">
+      <div style="font-size:2.5rem;">🚌</div>
+      <div class="form-title">Create Account</div>
+      <p class="text-muted small">Join TransitNotice for free journey alerts</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.register') }}" novalidate id="reg-form">
+      <div class="mb-3">
+        <label class="form-label" for="full_name">Full Name</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-person"></i></span>
+          <input type="text" id="full_name" name="full_name" class="form-control"
+                 value="{{ form.get('full_name','') }}" required autofocus
+                 placeholder="Your full name" minlength="2">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="email">Email Address</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+          <input type="email" id="email" name="email" class="form-control"
+                 value="{{ form.get('email','') }}" required
+                 placeholder="you@example.com">
+        </div>
+        <div class="form-text">A verification link will be sent to this address.</div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="mobile">Mobile Number</label>
+        <div class="input-group">
+          <span class="input-group-text">+91</span>
+          <input type="tel" id="mobile" name="mobile" class="form-control"
+                 value="{{ form.get('mobile','') }}" required
+                 placeholder="10-digit mobile number" pattern="[0-9]{10}" maxlength="10">
+        </div>
+        <div class="form-text">SMS alerts will be sent to this number.</div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-6">
+          <label class="form-label" for="password">Password</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" id="password" name="password" class="form-control"
+                   required minlength="8" placeholder="Min 8 characters">
+          </div>
+        </div>
+        <div class="col-6">
+          <label class="form-label" for="confirm_password">Confirm</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+            <input type="password" id="confirm_password" name="confirm_password"
+                   class="form-control" required placeholder="Repeat password">
+          </div>
+        </div>
+      </div>
+
+      <!-- Password strength indicator -->
+      <div class="mb-3" id="pw-strength-wrap" style="display:none;">
+        <div style="height:4px;border-radius:2px;background:#e2e8f0;overflow:hidden;">
+          <div id="pw-strength-bar" style="height:100%;width:0%;transition:width .3s,background .3s;"></div>
+        </div>
+        <div id="pw-strength-label" class="form-text mt-1"></div>
+      </div>
+
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="consent" name="consent" required>
+        <label class="form-check-label small" for="consent">
+          I agree to receive transport notifications via email and SMS.
+          I understand data is sourced from official providers.
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-primary-transit" id="reg-btn">
+        <i class="bi bi-person-plus-fill me-2"></i>Create Account
+      </button>
+    </form>
+
+    <p class="text-center mt-4 mb-0 small">
+      Already have an account?
+      <a href="{{ url_for('auth.login') }}" class="fw-600">Sign in</a>
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const pwInput  = document.getElementById('password');
+const bar      = document.getElementById('pw-strength-bar');
+const lbl      = document.getElementById('pw-strength-label');
+const wrap     = document.getElementById('pw-strength-wrap');
+const confirm  = document.getElementById('confirm_password');
+
+pwInput.addEventListener('input', () => {
+  const pw = pwInput.value;
+  wrap.style.display = pw.length ? 'block' : 'none';
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  const colors = ['#ef4444','#f59e0b','#0ea5e9','#10b981'];
+  const labels = ['Weak','Fair','Good','Strong'];
+  bar.style.width = (score * 25) + '%';
+  bar.style.background = colors[score - 1] || '#e2e8f0';
+  lbl.textContent = labels[score - 1] || '';
+  lbl.style.color = colors[score - 1] || '#94a3b8';
+});
+
+confirm.addEventListener('input', () => {
+  confirm.setCustomValidity(
+    confirm.value !== pwInput.value ? 'Passwords do not match.' : ''
+  );
+});
+</script>
+{% endblock %}

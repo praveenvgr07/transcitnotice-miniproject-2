@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="form-card">
+    <div class="text-center mb-4">
+      <div style="font-size:2.5rem;">🚌</div>
+      <div class="form-title">Welcome Back</div>
+      <p class="text-muted small">Sign in to your TransitNotice account</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('auth.login') }}" novalidate>
+      <div class="mb-3">
+        <label class="form-label" for="email">Email Address</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+          <input type="email" id="email" name="email" class="form-control"
+                 value="{{ form.get('email', '') }}" required autofocus
+                 placeholder="you@example.com">
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <div class="d-flex justify-content-between">
+          <label class="form-label" for="password">Password</label>
+          <a href="{{ url_for('auth.forgot_password') }}" class="small">Forgot password?</a>
+        </div>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-lock"></i></span>
+          <input type="password" id="password" name="password" class="form-control"
+                 required placeholder="Your password">
+          <button class="btn btn-outline-secondary" type="button" id="togglePw" title="Show/hide">
+            <i class="bi bi-eye" id="eyeIcon"></i>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary-transit" id="login-btn">
+        <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+      </button>
+    </form>
+
+    <p class="text-center mt-4 mb-0 small">
+      Don't have an account?
+      <a href="{{ url_for('auth.register') }}" class="fw-600">Register Free</a>
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const btn = document.getElementById('togglePw');
+  const pw  = document.getElementById('password');
+  const eye = document.getElementById('eyeIcon');
+  btn.addEventListener('click', () => {
+    const show = pw.type === 'password';
+    pw.type = show ? 'text' : 'password';
+    eye.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+  });
+</script>
+{% endblock %}

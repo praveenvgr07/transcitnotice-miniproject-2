@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Book Journey{% endblock %}
+
+{% block content %}
+<div style="background:linear-gradient(135deg,var(--navy-dark),var(--navy));padding:2rem 0 1rem;">
+  <div class="container">
+    <h1 class="text-white fw-800 mb-1" style="font-size:1.6rem;">
+      <i class="bi bi-calendar-check me-2"></i>Book Your Journey
+    </h1>
+    <p style="color:rgba(255,255,255,.7);font-size:.9rem;">
+      {{ route.provider }} · Route {{ route.route_number }} · {{ route.origin }} → {{ route.destination }}
+    </p>
+  </div>
+</div>
+
+<div class="container py-4">
+  <!-- Progress Steps -->
+  <div class="booking-steps mb-4">
+    <div class="booking-step active">
+      <div class="step-circle">1</div>
+      <div class="step-label">Journey Details</div>
+    </div>
+    <div class="booking-step">
+      <div class="step-circle">2</div>
+      <div class="step-label">Passengers</div>
+    </div>
+    <div class="booking-step">
+      <div class="step-circle">3</div>
+      <div class="step-label">Confirm</div>
+    </div>
+    <div class="booking-step">
+      <div class="step-circle">4</div>
+      <div class="step-label">Done</div>
+    </div>
+  </div>
+
+  <!-- Important notice -->
+  <div class="alert-transit alert-transit-warning mb-4">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <div>
+      <strong>Booking Notice:</strong> For {{ route.provider }}, payment and final ticket issuance
+      is handled by the official transport provider. You will be directed to the official
+      portal to complete your booking.
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="card-transit">
+        <div class="card-header-custom">
+          <i class="bi bi-map me-2"></i>Journey Details
+        </div>
+        <div class="card-body">
+          <form method="POST" action="{{ url_for('booking.book', route_id=route.id) }}">
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-600">From Stop *</label>
+                <input type="text" name="origin_stop" class="form-control"
+                       placeholder="Starting stop" required
+                       value="{{ route.origin }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-600">To Stop *</label>
+                <input type="text" name="destination_stop" class="form-control"
+                       placeholder="Destination stop" required
+                       value="{{ route.destination }}">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-600">Travel Date *</label>
+              <input type="date" name="journey_date" class="form-control"
+                     value="{{ travel_date }}" required
+                     min="{{ today_str }}">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-600">Number of Passengers *</label>
+              <select name="passenger_count" class="form-select">
+                {% for i in range(1, 7) %}
+                <option value="{{ i }}">{{ i }} passenger{{ 's' if i > 1 else '' }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            {% if schedules %}
+            <div class="mb-4">
+              <label class="form-label fw-600">Select Departure Time *</label>
+              <div class="row g-2">
+                {% for s in schedules %}
+                <div class="col-sm-4 col-md-3">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="schedule_id"
+                           id="sched_{{ s.id }}" value="{{ s.id }}"
+                           {% if loop.first %}checked{% endif %}>
+                    <label class="form-check-label" for="sched_{{ s.id }}" style="cursor:pointer;">
+                      <div class="schedule-time">{{ s.departure_time }}</div>
+                      {% if s.arrival_time %}
+                      <div class="schedule-freq">Arrives {{ s.arrival_time }}</div>
+                      {% endif %}
+                    </label>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% else %}
+            <div class="alert-transit alert-transit-info mb-3">
+              <i class="bi bi-info-circle"></i>
+              No schedules available for this route on the selected date.
+              You may still proceed and the operator will confirm timings.
+            </div>
+            <input type="hidden" name="schedule_id" value="">
+            {% endif %}
+
+            <button type="submit" class="btn btn-search px-4">
+              <i class="bi bi-arrow-right me-2"></i>Continue to Passenger Details
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Route Summary Sidebar -->
+    <div class="col-lg-4">
+      <div class="card-transit">
+        <div class="card-header-custom"><i class="bi bi-info-circle me-2"></i>Route Summary</div>
+        <div class="card-body">
+          <table class="table table-sm mb-0">
+            <tr><td class="text-muted">Provider</td><td class="fw-600">{{ route.provider }}</td></tr>
+            <tr><td class="text-muted">Route</td><td class="fw-600">{{ route.route_number }}</td></tr>
+            <tr><td class="text-muted">From</td><td class="fw-600">{{ route.origin }}</td></tr>
+            <tr><td class="text-muted">To</td><td class="fw-600">{{ route.destination }}</td></tr>
+            {% if route.service_type %}
+            <tr><td class="text-muted">Type</td><td class="fw-600">{{ route.service_type }}</td></tr>
+            {% endif %}
+          </table>
+          <p class="text-muted small mt-3 mb-0">
+            <i class="bi bi-shield-check text-success me-1"></i>
+            Fares are determined by the official transport operator and are not set by TransitNotice.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const dp = document.querySelector('[name="journey_date"]');
+  if (dp && !dp.value) dp.value = new Date().toISOString().split('T')[0];
+</script>
+{% endblock %}

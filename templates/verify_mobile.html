@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Verify Mobile{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="form-card" style="max-width:440px;">
+    <div class="text-center mb-4">
+      <div style="font-size:2.5rem;">📱</div>
+      <div class="form-title">Verify Mobile Number</div>
+      <p class="text-muted small">Verify your mobile to receive SMS journey alerts.</p>
+    </div>
+
+    <!-- Step 1: Send OTP -->
+    <form method="POST" action="{{ url_for('auth.verify_mobile') }}" class="mb-4">
+      <input type="hidden" name="action" value="send">
+      <button type="submit" class="btn btn-outline-primary w-100">
+        <i class="bi bi-phone me-2"></i>Send OTP to My Mobile
+      </button>
+    </form>
+
+    <hr>
+
+    <!-- Step 2: Enter OTP -->
+    <form method="POST" action="{{ url_for('auth.verify_mobile') }}">
+      <input type="hidden" name="action" value="verify">
+      <div class="mb-3">
+        <label class="form-label fw-600" for="otp">Enter 6-Digit OTP</label>
+        <input type="text" id="otp" name="otp" class="form-control text-center fw-700"
+               maxlength="6" pattern="[0-9]{6}" inputmode="numeric"
+               placeholder="000000" required style="font-size:1.4rem;letter-spacing:6px;">
+      </div>
+      <button type="submit" class="btn btn-primary-transit">
+        <i class="bi bi-check-circle me-2"></i>Verify OTP
+      </button>
+    </form>
+
+    <p class="text-center mt-4 mb-0 small text-muted">
+      <i class="bi bi-info-circle me-1"></i>OTP is valid for 5 minutes.
+    </p>
+  </div>
+</div>
+{% endblock %}

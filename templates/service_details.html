@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block title %}{{ route.provider }} Route {{ route.route_number }}{% endblock %}
+
+{% block content %}
+<div style="background:linear-gradient(135deg,var(--navy-dark),var(--navy));padding:2rem 0 1rem;">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-2">
+        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}" class="text-white opacity-75">Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('transport.search') }}" class="text-white opacity-75">Search</a></li>
+        <li class="breadcrumb-item active text-white">Route {{ route.route_number }}</li>
+      </ol>
+    </nav>
+    <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-3 flex-wrap mb-2">
+          <span class="route-number" style="font-size:1.1rem;padding:.35rem 1rem;">{{ route.route_number }}</span>
+          <span class="route-provider-badge badge-{{ route.provider|lower }}" style="font-size:.85rem;">{{ route.provider }}</span>
+          {% if route.service_type %}
+          <span class="badge bg-light text-dark">{{ route.service_type }}</span>
+          {% endif %}
+        </div>
+        <h1 class="text-white fw-800 mb-1" style="font-size:1.5rem;">
+          {{ route.origin }} → {{ route.destination }}
+        </h1>
+        {% if route.route_name %}
+        <p style="color:rgba(255,255,255,.7);margin:0;">{{ route.route_name }}</p>
+        {% endif %}
+      </div>
+      {% if session.user_id %}
+      <a href="{{ url_for('booking.book', route_id=route.id) }}{% if travel_date %}?date={{ travel_date }}{% endif %}"
+         class="btn btn-search align-self-start">
+        <i class="bi bi-calendar-check me-2"></i>Book This Journey
+      </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="container py-4">
+  <div class="row g-4">
+
+    <!-- Left: Schedules + Stops -->
+    <div class="col-lg-8">
+
+      <!-- Data source info -->
+      <div class="alert-transit alert-transit-info mb-3">
+        <i class="bi bi-info-circle-fill"></i>
+        <span>
+          Data source: <strong>{{ route.source_name }}</strong> ·
+          Last updated: <strong>{{ route.last_success_at.strftime('%d %b %Y at %H:%M') if route.last_success_at else 'Not yet collected' }}</strong>
+          {% if route.last_success_at %}
+          <span class="pulse-dot ms-2"></span>
+          {% endif %}
+        </span>
+      </div>
+
+      <!-- Schedules -->
+      <div class="card-transit mb-4">
+        <div class="card-header-custom d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-clock-fill me-2"></i>Schedules
+            {% if travel_date %}<small class="ms-2 opacity-75">for {{ travel_date }}</small>{% endif %}
+          </span>
+          <span class="badge bg-light text-dark">{{ schedules|length }} trips</span>
+        </div>
+        <div class="card-body p-0">
+          {% if schedules %}
+          <div class="table-responsive">
+            <table class="table table-transit mb-0">
+              <thead>
+                <tr>
+                  <th>Departure</th>
+                  <th>Arrival</th>
+                  <th>Trip No.</th>
+                  <th>Days</th>
+                  <th>Status</th>
+                  {% if session.user_id %}<th></th>{% endif %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for s in schedules %}
+                <tr>
+                  <td>
+                    <div class="schedule-time">{{ s.departure_time }}</div>
+                  </td>
+                  <td>
+                    <div class="schedule-time">{{ s.arrival_time or '—' }}</div>
+                  </td>
+                  <td>{{ s.trip_number or '—' }}</td>
+                  <td>
+                    <small class="text-muted">
+                      {% set day_map = {'1':'M','2':'T','3':'W','4':'T','5':'F','6':'S','7':'S'} %}
+                      {% for d in '1234567' %}
+                        <span {% if d in s.days_of_week %}class="fw-700 text-navy"{% else %}style="opacity:.3"{% endif %}>{{ day_map[d] }}</span>
+                      {% endfor %}
+                    </small>
+                  </td>
+                  <td>
+                    {% if s.is_active %}
+                    <span class="status-badge status-success">Active</span>
+                    {% else %}
+                    <span class="status-badge status-failed">Cancelled</span>
+                    {% endif %}
+                  </td>
+                  {% if session.user_id %}
+                  <td>
+                    <a href="{{ url_for('booking.book', route_id=route.id) }}?schedule={{ s.id }}{% if travel_date %}&date={{ travel_date }}{% endif %}"
+                       class="btn btn-sm btn-outline-primary">Book</a>
+                  </td>
+                  {% endif %}
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="empty-state p-4">
+            <i class="bi bi-clock d-block mb-2"></i>
+            <p class="small">No schedule data available for this route.</p>
+            {% if travel_date %}
+            <a href="{{ url_for('transport.service_details', route_id=route.id) }}" class="btn btn-sm btn-outline-secondary">Show all schedules</a>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Stops -->
+      {% if stops %}
+      <div class="card-transit">
+        <div class="card-header-custom">
+          <i class="bi bi-signpost-split me-2"></i>Stops ({{ stops|length }})
+        </div>
+        <div class="card-body p-0" style="max-height:400px;overflow-y:auto;">
+          {% for stop in stops %}
+          <div class="d-flex align-items-center gap-3 p-3 border-bottom" style="font-size:.875rem;">
+            <div style="width:28px;height:28px;border-radius:50%;background:{% if loop.first or loop.last %}var(--accent){% else %}var(--border){% endif %};
+                        display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;
+                        color:{% if loop.first or loop.last %}#fff{% else %}var(--text-muted){% endif %};flex-shrink:0;">
+              {{ stop.stop_sequence }}
+            </div>
+            <div>
+              <div class="fw-600">{{ stop.stop_name }}</div>
+              {% if stop.stop_code %}<div class="text-muted small">Code: {{ stop.stop_code }}</div>{% endif %}
+            </div>
+            {% if loop.first %}<span class="ms-auto status-badge status-success">Origin</span>{% endif %}
+            {% if loop.last  %}<span class="ms-auto status-badge status-pending">Destination</span>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Right: Change history + Actions -->
+    <div class="col-lg-4">
+
+      <!-- Recent changes -->
+      <div class="card-transit mb-3">
+        <div class="card-header-custom">
+          <i class="bi bi-exclamation-triangle me-2"></i>Recent Changes
+        </div>
+        <div class="card-body p-0">
+          {% if changes %}
+            {% for ch in changes %}
+            <div class="change-row">
+              <span class="change-type-badge ct-{{ ch.change_type.split('_')[0] }}">
+                {{ ch.change_type.replace('_',' ').title() }}
+              </span>
+              <div class="flex-grow-1" style="font-size:.8rem;">
+                {% if ch.old_value and ch.new_value %}
+                  <span style="text-decoration:line-through;color:#94a3b8;">{{ ch.old_value }}</span>
+                  → <strong>{{ ch.new_value }}</strong>
+                {% else %}
+                  {{ ch.change_type.replace('_',' ') }}
+                {% endif %}
+                <div class="text-muted" style="font-size:.72rem;">{{ ch.detected_at.strftime('%d %b %H:%M') if ch.detected_at else '' }}</div>
+              </div>
+              {% if ch.is_confirmed %}
+              <i class="bi bi-patch-check-fill text-success" title="Confirmed"></i>
+              {% endif %}
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="empty-state p-3">
+              <i class="bi bi-check-circle d-block mb-1"></i>
+              <p class="small mb-0">No recent changes detected for this route.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Route info card -->
+      <div class="card-transit mb-3">
+        <div class="card-header-custom">
+          <i class="bi bi-info-circle me-2"></i>Route Info
+        </div>
+        <div class="card-body">
+          <table class="table table-sm mb-0">
+            <tr><td class="text-muted">Provider</td><td class="fw-600">{{ route.provider }}</td></tr>
+            <tr><td class="text-muted">Route No.</td><td class="fw-600">{{ route.route_number }}</td></tr>
+            <tr><td class="text-muted">Direction</td><td class="fw-600 text-capitalize">{{ route.direction }}</td></tr>
+            {% if route.distance_km %}<tr><td class="text-muted">Distance</td><td class="fw-600">{{ route.distance_km }} km</td></tr>{% endif %}
+            <tr><td class="text-muted">Status</td>
+                <td><span class="status-badge {% if route.is_active %}status-success{% else %}status-failed{% endif %}">
+                  {% if route.is_active %}Active{% else %}Inactive{% endif %}</span></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Save route -->
+      {% if session.user_id %}
+      <div class="card-transit">
+        <div class="card-body">
+          <p class="small fw-600 mb-2"><i class="bi bi-bookmark me-1"></i>Save This Route</p>
+          <form method="POST" action="{{ url_for('user.save_route') }}">
+            <input type="hidden" name="route_id" value="{{ route.id }}">
+            <input type="hidden" name="origin" value="{{ route.origin }}">
+            <input type="hidden" name="destination" value="{{ route.destination }}">
+            <input type="hidden" name="provider" value="{{ route.provider }}">
+            <input type="text" name="label" class="form-control form-control-sm mb-2"
+                   placeholder="Nickname (optional)">
+            <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+              <i class="bi bi-bookmark-plus me-1"></i>Save to Favourites
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

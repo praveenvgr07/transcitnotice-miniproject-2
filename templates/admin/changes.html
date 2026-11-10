@@ -1,0 +1,48 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Change History{% endblock %}
+{% block content %}
+<div class="admin-page-header">
+  <div>
+    <h2 class="admin-page-title">Schedule Change History</h2>
+    <p class="admin-page-sub">All detected schedule modifications across all providers.</p>
+  </div>
+</div>
+
+{% if changes %}
+{% for ch in changes %}
+<div class="change-row">
+  <span class="source-provider-tag tag-{{ ch.provider|lower }}" style="min-width:48px;text-align:center;">{{ ch.provider }}</span>
+  <span class="route-number" style="font-size:.75rem;">{{ ch.route_number }}</span>
+  <span class="change-type-badge ct-{{ ch.change_type.split('_')[0] }}">
+    {{ ch.change_type.replace('_', ' ').title() }}
+  </span>
+  <div class="flex-grow-1" style="font-size:.83rem;">
+    <span class="text-muted">{{ ch.origin }}</span>
+    <i class="bi bi-arrow-right text-primary mx-1"></i>
+    <span class="text-muted">{{ ch.destination }}</span>
+    {% if ch.old_value and ch.new_value %}
+    <div class="mt-1" style="font-size:.78rem;">
+      <span style="text-decoration:line-through;color:#94a3b8;">{{ ch.old_value }}</span>
+      → <strong class="text-success">{{ ch.new_value }}</strong>
+    </div>
+    {% endif %}
+  </div>
+  <div class="text-end" style="min-width:80px;">
+    {% if ch.is_confirmed %}
+    <span class="status-badge status-success"><i class="bi bi-patch-check-fill me-1"></i>Confirmed</span>
+    {% else %}
+    <span class="status-badge status-pending">Unconfirmed</span>
+    {% endif %}
+    <div class="text-muted" style="font-size:.7rem;">
+      {{ ch.detected_at.strftime('%d %b %Y %H:%M') if ch.detected_at else '' }}
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="empty-state py-5">
+  <i class="bi bi-arrow-repeat d-block fs-1 mb-3"></i>
+  <h5 class="text-muted">No schedule changes detected</h5>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}404 – Not Found{% endblock %}
+{% block content %}
+<div class="container text-center py-5">
+  <div style="font-size:5rem;opacity:.15;margin-bottom:1rem;">🚌</div>
+  <h1 class="fw-800" style="color:var(--navy);font-size:4rem;margin-bottom:.5rem;">404</h1>
+  <h2 class="fw-600 text-muted mb-3">Page Not Found</h2>
+  <p class="text-muted" style="max-width:400px;margin:0 auto 2rem;">
+    The page you're looking for doesn't exist, was removed, or the URL is incorrect. 
+    Let's get you back on track.
+  </p>
+  <div class="d-flex gap-3 justify-content-center">
+    <a href="{{ url_for('main.index') }}" class="btn btn-primary-transit" style="width:auto;">
+      <i class="bi bi-house me-2"></i>Go Home
+    </a>
+    <a href="{{ url_for('transport.search') }}" class="btn btn-outline-primary">
+      <i class="bi bi-search me-2"></i>Search Services
+    </a>
+  </div>
+</div>
+{% endblock %}

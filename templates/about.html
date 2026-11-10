@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}About{% endblock %}
+{% block content %}
+<div style="background:linear-gradient(135deg,var(--navy-dark),var(--navy));padding:3rem 0 2rem;">
+  <div class="container text-center">
+    <h1 class="text-white fw-800 mb-2" style="font-size:2rem;">About TransitNotice</h1>
+    <p style="color:rgba(255,255,255,.7);max-width:600px;margin:0 auto;font-size:.95rem;">
+      A smart public transport information platform designed for Tamil Nadu, India.
+    </p>
+  </div>
+</div>
+
+<div class="container py-5" style="max-width:780px;">
+
+  <div class="card-transit mb-4">
+    <div class="card-body p-4">
+      <h3 class="fw-800 mb-3" style="color:var(--navy);">Our Mission</h3>
+      <p>
+        TransitNotice centralises verified schedule information from Tamil Nadu's major
+        public transport providers — <strong>MTC</strong>, <strong>TNSTC</strong>,
+        <strong>SETC</strong> and <strong>CMRL</strong> — into a single, user-friendly
+        platform that automatically detects and notifies passengers about changes that
+        may affect their journeys.
+      </p>
+      <p>
+        We believe every traveller deserves timely, accurate information. Whether it's a
+        bus rescheduling, a metro cancellation, or a new holiday service, TransitNotice
+        monitors official data feeds around the clock so you don't have to.
+      </p>
+    </div>
+  </div>
+
+  <div class="card-transit mb-4">
+    <div class="card-body p-4">
+      <h3 class="fw-800 mb-3" style="color:var(--navy);">How It Works</h3>
+      <div class="row g-4 mt-1">
+        {% set items = [
+          ('bi-cloud-download-fill', '#0ea5e9', 'Authorised Data Collection',
+           'We only fetch data from officially authorised sources. Our scraper identifies itself transparently, respects robots.txt, and rate-limits every request.'),
+          ('bi-cpu-fill', '#10b981', 'Intelligent Change Detection',
+           'Our comparison engine analyses new data against stored records, detecting departure-time shifts, cancellations, diversions and new services within minutes.'),
+          ('bi-bell-fill', '#f59e0b', 'Multi-Channel Notifications',
+           'Registered users with upcoming bookings receive instant alerts via email and SMS when a change is detected that could affect their journey.'),
+          ('bi-shield-check-fill', '#0ea5e9', 'Data Integrity & Compliance',
+           'Every piece of data is timestamped, audit-logged, and attributed to its official source. We never fabricate or extrapolate schedule information.'),
+        ] %}
+        {% for icon, color, title, desc in items %}
+        <div class="col-md-6">
+          <div class="d-flex gap-3 align-items-start">
+            <div style="width:44px;height:44px;border-radius:10px;background:{{ color }}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i class="bi {{ icon }}" style="color:{{ color }};font-size:1.2rem;"></i>
+            </div>
+            <div>
+              <div class="fw-700 small" style="color:var(--navy);">{{ title }}</div>
+              <div class="text-muted small">{{ desc }}</div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card-transit mb-4">
+    <div class="card-body p-4">
+      <h3 class="fw-800 mb-3" style="color:var(--navy);">Supported Providers</h3>
+      <div class="row g-3">
+        {% set provs = [
+          ('MTC',  'Metropolitan Transport Corporation',  'City bus network across Greater Chennai.',  'provider-mtc'),
+          ('TNSTC','Tamil Nadu State Transport Corp.',     'Inter-city and mofussil bus services.',     'provider-tnstc'),
+          ('SETC', 'State Express Transport Corporation',  'Long-distance AC and express coaches.',     'provider-setc'),
+          ('CMRL', 'Chennai Metro Rail Limited',           'Urban rapid transit metro network.',        'provider-cmrl'),
+        ] %}
+        {% for code, name, desc, cls in provs %}
+        <div class="col-6">
+          <div class="provider-card {{ cls }}" style="text-align:left;cursor:default;">
+            <div class="provider-name mb-1">{{ code }}</div>
+            <div class="fw-600 small" style="color:var(--navy);">{{ name }}</div>
+            <div class="provider-desc mt-1">{{ desc }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card-transit">
+    <div class="card-body p-4">
+      <h3 class="fw-800 mb-3" style="color:var(--navy);">Technology Stack</h3>
+      <div class="row g-2">
+        {% for tech in ['Python 3.12', 'Flask 3.x', 'MySQL 8', 'APScheduler', 'Jinja2', 'Bootstrap 5', 'bcrypt', 'SendGrid / Twilio'] %}
+        <div class="col-auto">
+          <span class="badge bg-light text-dark border px-3 py-2" style="font-size:.82rem;">{{ tech }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      <p class="text-muted small mt-3 mb-0">
+        Built as a production-grade platform with connection pooling, background scheduling,
+        role-based access, and full audit logging.
+      </p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

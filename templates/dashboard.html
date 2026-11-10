@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="dashboard-grid">
+
+    <!-- ── Sidebar ───────────────────────────────────── -->
+    <aside class="sidebar">
+      <div class="sidebar-avatar">{{ user.full_name[0].upper() }}</div>
+      <div class="fw-700" style="color:var(--navy);">{{ user.full_name }}</div>
+      <div class="text-muted small mb-1">{{ user.email }}</div>
+      {% if user.is_email_verified %}
+        <span class="status-badge status-success mb-3"><i class="bi bi-patch-check-fill me-1"></i>Verified</span>
+      {% else %}
+        <span class="status-badge status-pending mb-3"><i class="bi bi-exclamation-circle me-1"></i>Unverified</span>
+      {% endif %}
+
+      <nav class="sidebar-nav mt-2">
+        <a href="{{ url_for('user.dashboard') }}" class="active">
+          <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        <a href="{{ url_for('transport.search') }}">
+          <i class="bi bi-search"></i> Search Services
+        </a>
+        <a href="{{ url_for('user.booking_history') }}">
+          <i class="bi bi-ticket-perforated"></i> My Bookings
+        </a>
+        <a href="{{ url_for('user.notifications') }}">
+          <i class="bi bi-bell"></i> Notifications
+          {% if unread_count > 0 %}
+          <span class="badge bg-danger ms-auto">{{ unread_count }}</span>
+          {% endif %}
+        </a>
+        <a href="{{ url_for('user.profile') }}">
+          <i class="bi bi-person-gear"></i> Profile
+        </a>
+        {% if session.user_role == 'admin' %}
+        <a href="{{ url_for('admin.dashboard') }}" style="margin-top:.5rem;border-top:1px solid #e2e8f0;padding-top:.8rem;">
+          <i class="bi bi-shield-check"></i> Admin Panel
+        </a>
+        {% endif %}
+        <a href="{{ url_for('auth.logout') }}" class="text-danger mt-3">
+          <i class="bi bi-box-arrow-right"></i> Logout
+        </a>
+      </nav>
+    </aside>
+
+    <!-- ── Main Content ──────────────────────────────── -->
+    <div>
+      <!-- Quick stats -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+          <div class="stat-card">
+            <div class="stat-icon stat-icon-blue"><i class="bi bi-ticket-perforated"></i></div>
+            <div>
+              <div class="stat-value">{{ bookings|length }}</div>
+              <div class="stat-label">Total Bookings</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-3">
+          <div class="stat-card">
+            <div class="stat-icon stat-icon-amber"><i class="bi bi-bell-fill"></i></div>
+            <div>
+              <div class="stat-value">{{ unread_count }}</div>
+              <div class="stat-label">Unread Alerts</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-3">
+          <div class="stat-card">
+            <div class="stat-icon stat-icon-green"><i class="bi bi-bookmark-fill"></i></div>
+            <div>
+              <div class="stat-value">{{ saved_routes|length }}</div>
+              <div class="stat-label">Saved Routes</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-3">
+          <div class="stat-card">
+            <div class="stat-icon {% if user.is_mobile_verified %}stat-icon-green{% else %}stat-icon-red{% endif %}">
+              <i class="bi bi-phone-fill"></i>
+            </div>
+            <div>
+              <div class="stat-value" style="font-size:1rem;">
+                {% if user.is_mobile_verified %}Verified{% else %}Pending{% endif %}
+              </div>
+              <div class="stat-label">Mobile Status</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Search -->
+      <div class="card-transit mb-4">
+        <div class="card-header-custom d-flex align-items-center gap-2">
+          <i class="bi bi-search"></i> Quick Search
+        </div>
+        <div class="card-body">
+          <form method="GET" action="{{ url_for('transport.search') }}">
+            <div class="row g-2">
+              <div class="col-md-4">
+                <input type="text" name="origin" class="form-control" placeholder="From">
+              </div>
+              <div class="col-md-4">
+                <input type="text" name="destination" class="form-control" placeholder="To">
+              </div>
+              <div class="col-md-2">
+                <input type="date" name="travel_date" class="form-control">
+              </div>
+              <div class="col-md-2">
+                <button type="submit" class="btn btn-search w-100">Search</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Recent Bookings -->
+      <div class="card-transit mb-4">
+        <div class="card-header-custom d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-ticket-perforated me-2"></i>Recent Bookings</span>
+          <a href="{{ url_for('user.booking_history') }}" class="text-white opacity-75 small">View all →</a>
+        </div>
+        <div class="card-body p-0">
+          {% if bookings %}
+            {% for b in bookings %}
+            <div class="booking-card">
+              <div class="stat-icon stat-icon-blue" style="width:40px;height:40px;border-radius:8px;">
+                <i class="bi bi-bus-front-fill"></i>
+              </div>
+              <div class="flex-grow-1">
+                <div class="booking-ref">{{ b.booking_reference }}</div>
+                <div class="fw-600 small">{{ b.provider }} Route {{ b.route_number }}</div>
+                <div class="text-muted small">{{ b.origin_stop }} → {{ b.destination_stop }}</div>
+                <div class="text-muted" style="font-size:.75rem;">{{ b.journey_date }}</div>
+              </div>
+              <span class="bk-status bk-{{ b.booking_status }}">{{ b.booking_status.title() }}</span>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="empty-state">
+              <i class="bi bi-ticket-perforated d-block"></i>
+              <p>No bookings yet. <a href="{{ url_for('transport.search') }}">Search services</a> to get started.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Saved Routes & Recent Announcements -->
+      <div class="row g-3">
+        <div class="col-lg-6">
+          <div class="card-transit h-100">
+            <div class="card-header-custom d-flex justify-content-between">
+              <span><i class="bi bi-bookmark-fill me-2"></i>Saved Routes</span>
+              <a href="{{ url_for('transport.search') }}" class="text-white opacity-75 small">+ Add</a>
+            </div>
+            <div class="card-body p-0">
+              {% if saved_routes %}
+                {% for sr in saved_routes %}
+                <div class="d-flex align-items-center p-3 border-bottom">
+                  <div class="flex-grow-1">
+                    <div class="fw-600 small">{{ sr.label or (sr.origin + ' → ' + sr.destination) }}</div>
+                    <div class="text-muted" style="font-size:.75rem;">
+                      {% if sr.provider %}<span class="route-provider-badge badge-{{ sr.provider|lower }}">{{ sr.provider }}</span>{% endif %}
+                      {{ sr.origin }} → {{ sr.destination }}
+                    </div>
+                  </div>
+                  <a href="{{ url_for('transport.search') }}?origin={{ sr.origin }}&destination={{ sr.destination }}" class="btn btn-sm btn-outline-primary me-2">Search</a>
+                  <form method="POST" action="{{ url_for('user.delete_saved_route', sr_id=sr.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Remove">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </div>
+                {% endfor %}
+              {% else %}
+                <div class="empty-state" style="padding:2rem;">
+                  <i class="bi bi-bookmark d-block mb-2"></i>
+                  <p class="small">No saved routes. Save routes you travel frequently.</p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="card-transit h-100">
+            <div class="card-header-custom">
+              <i class="bi bi-megaphone-fill me-2"></i>Latest Announcements
+            </div>
+            <div class="card-body p-0">
+              {% if announcements %}
+                {% for ann in announcements %}
+                <div class="p-3 border-bottom">
+                  <div class="d-flex align-items-start gap-2">
+                    <span class="route-provider-badge badge-{{ ann.provider|lower }}">{{ ann.provider }}</span>
+                    <div>
+                      <div class="fw-600 small">{{ ann.title }}</div>
+                      <div class="text-muted" style="font-size:.75rem;">{{ ann.body[:80] }}{% if ann.body|length > 80 %}…{% endif %}</div>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              {% else %}
+                <div class="empty-state" style="padding:2rem;">
+                  <i class="bi bi-megaphone d-block mb-2"></i>
+                  <p class="small">No recent announcements.</p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main content -->
+  </div><!-- /dashboard-grid -->
+</div>
+{% endblock %}

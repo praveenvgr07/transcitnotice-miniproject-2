@@ -1,0 +1,84 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<div class="admin-page-header">
+  <div>
+    <h2 class="admin-page-title">User Management</h2>
+    <p class="admin-page-sub">Manage registered users and account status.</p>
+  </div>
+  <span class="badge bg-primary fs-6">{{ users|length }} users</span>
+</div>
+
+<div class="table-transit">
+  <table class="table mb-0">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Mobile</th>
+        <th>Role</th>
+        <th>Verified</th>
+        <th>Status</th>
+        <th>Registered</th>
+        <th>Last Login</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td class="small">{{ u.id }}</td>
+        <td class="fw-600">{{ u.full_name }}</td>
+        <td class="small">{{ u.email }}</td>
+        <td class="small">{{ u.mobile }}</td>
+        <td>
+          {% if u.role == 'admin' %}
+          <span class="status-badge status-failed">Admin</span>
+          {% else %}
+          <span class="status-badge status-success">User</span>
+          {% endif %}
+        </td>
+        <td>
+          <span class="me-1">
+            {% if u.is_email_verified %}<i class="bi bi-envelope-check-fill text-success" title="Email verified"></i>{% else %}<i class="bi bi-envelope text-muted" title="Email unverified"></i>{% endif %}
+          </span>
+          <span>
+            {% if u.is_mobile_verified %}<i class="bi bi-phone-fill text-success" title="Mobile verified"></i>{% else %}<i class="bi bi-phone text-muted" title="Mobile unverified"></i>{% endif %}
+          </span>
+        </td>
+        <td>
+          {% if u.is_active %}
+          <span class="status-badge status-success">Active</span>
+          {% else %}
+          <span class="status-badge status-disabled">Disabled</span>
+          {% endif %}
+        </td>
+        <td class="small text-muted">{{ u.created_at.strftime('%d %b %Y') if u.created_at else '—' }}</td>
+        <td class="small text-muted">{{ u.last_login.strftime('%d %b %H:%M') if u.last_login else 'Never' }}</td>
+        <td>
+          <form method="POST" action="{{ url_for('admin.toggle_user', user_id=u.id) }}" class="d-inline">
+            <button type="submit" class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                    data-confirm="Are you sure you want to {{ 'deactivate' if u.is_active else 'activate' }} this user?">
+              {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if page > 1 or users|length == 50 %}
+<div class="d-flex justify-content-center gap-2 mt-3">
+  {% if page > 1 %}
+  <a href="{{ url_for('admin.users') }}?page={{ page - 1 }}" class="btn btn-sm btn-outline-primary">← Prev</a>
+  {% endif %}
+  <span class="btn btn-sm btn-primary disabled">Page {{ page }}</span>
+  {% if users|length == 50 %}
+  <a href="{{ url_for('admin.users') }}?page={{ page + 1 }}" class="btn btn-sm btn-outline-primary">Next →</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

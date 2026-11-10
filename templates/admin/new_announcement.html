@@ -1,0 +1,81 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}New Announcement{% endblock %}
+{% block content %}
+<div class="admin-page-header">
+  <div>
+    <h2 class="admin-page-title">Create Announcement</h2>
+    <p class="admin-page-sub">Publish a new service announcement to platform users.</p>
+  </div>
+</div>
+
+<div style="max-width:640px;">
+  <div class="card-transit">
+    <div class="card-body p-4">
+      <form method="POST" action="{{ url_for('admin.new_announcement') }}">
+        <div class="mb-3">
+          <label class="form-label fw-600">Provider *</label>
+          <select name="provider" class="form-select" required>
+            {% for p in providers %}
+            <option value="{{ p }}" {% if form.get('provider') == p %}selected{% endif %}>{{ p }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-600">Title *</label>
+          <input type="text" name="title" class="form-control"
+                 value="{{ form.get('title', '') }}" required maxlength="200"
+                 placeholder="e.g. Route 21C – Service Suspended Until 15 Nov">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-600">Body *</label>
+          <textarea name="body" class="form-control" rows="4" required
+                    placeholder="Full details of the announcement...">{{ form.get('body', '') }}</textarea>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-600">Type</label>
+            <select name="announcement_type" class="form-select">
+              {% for t in ['general', 'service_change', 'holiday', 'strike', 'maintenance', 'new_service'] %}
+              <option value="{{ t }}" {% if form.get('announcement_type') == t %}selected{% endif %}>{{ t.replace('_', ' ').title() }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-600">Severity</label>
+            <select name="severity" class="form-select">
+              <option value="info" {% if form.get('severity') == 'info' %}selected{% endif %}>Info</option>
+              <option value="warning" {% if form.get('severity') == 'warning' %}selected{% endif %}>Warning</option>
+              <option value="critical" {% if form.get('severity') == 'critical' %}selected{% endif %}>Critical</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-600">Source URL (optional)</label>
+          <input type="url" name="source_url" class="form-control"
+                 value="{{ form.get('source_url', '') }}"
+                 placeholder="https://...">
+        </div>
+
+        <div class="form-check form-switch form-switch-custom mb-4">
+          <input class="form-check-input" type="checkbox" id="is_verified" name="is_verified"
+                 {% if form.get('is_verified') %}checked{% endif %}>
+          <label class="form-check-label" for="is_verified">
+            <i class="bi bi-patch-check-fill text-success me-1"></i> Mark as verified
+          </label>
+        </div>
+
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('admin.announcements') }}" class="btn btn-outline-secondary">Cancel</a>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-megaphone me-2"></i>Publish Announcement
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Confirm Booking{% endblock %}
+
+{% block content %}
+<div style="background:linear-gradient(135deg,var(--navy-dark),var(--navy));padding:2rem 0 1rem;">
+  <div class="container">
+    <h1 class="text-white fw-800 mb-0" style="font-size:1.6rem;">
+      <i class="bi bi-check2-square me-2"></i>Review & Confirm
+    </h1>
+  </div>
+</div>
+<div class="container py-4" style="max-width:700px;">
+  <div class="booking-steps mb-4">
+    <div class="booking-step done"><div class="step-circle"><i class="bi bi-check"></i></div><div class="step-label">Journey</div></div>
+    <div class="booking-step done"><div class="step-circle"><i class="bi bi-check"></i></div><div class="step-label">Passengers</div></div>
+    <div class="booking-step active"><div class="step-circle">3</div><div class="step-label">Confirm</div></div>
+    <div class="booking-step"><div class="step-circle">4</div><div class="step-label">Done</div></div>
+  </div>
+
+  <!-- Journey summary -->
+  <div class="card-transit mb-3">
+    <div class="card-header-custom"><i class="bi bi-map me-2"></i>Journey Summary</div>
+    <div class="card-body">
+      <div class="row g-2">
+        <div class="col-6 col-md-3 text-center p-2">
+          <div class="text-muted small">Provider</div>
+          <div class="fw-700"><span class="route-provider-badge badge-{{ route.provider|lower }}">{{ route.provider }}</span></div>
+        </div>
+        <div class="col-6 col-md-3 text-center p-2">
+          <div class="text-muted small">Route</div>
+          <div class="fw-700"><span class="route-number">{{ route.route_number }}</span></div>
+        </div>
+        <div class="col-6 col-md-3 text-center p-2">
+          <div class="text-muted small">Date</div>
+          <div class="fw-700">{{ pending.journey_date }}</div>
+        </div>
+        <div class="col-6 col-md-3 text-center p-2">
+          <div class="text-muted small">Passengers</div>
+          <div class="fw-700">{{ pending.passengers|length }}</div>
+        </div>
+      </div>
+      <hr>
+      <div class="d-flex align-items-center gap-3 justify-content-center">
+        <div class="text-center">
+          <div class="text-muted small">From</div>
+          <div class="fw-700">{{ pending.origin_stop }}</div>
+        </div>
+        <i class="bi bi-arrow-right fs-4 text-primary"></i>
+        <div class="text-center">
+          <div class="text-muted small">To</div>
+          <div class="fw-700">{{ pending.destination_stop }}</div>
+        </div>
+      </div>
+      {% if schedule %}
+      <div class="text-center mt-3">
+        <div class="text-muted small">Selected Departure</div>
+        <div class="schedule-time text-primary">{{ schedule.departure_time }}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Passenger list -->
+  <div class="card-transit mb-3">
+    <div class="card-header-custom"><i class="bi bi-people me-2"></i>Passengers</div>
+    <div class="card-body p-0">
+      {% for p in pending.passengers %}
+      <div class="d-flex align-items-center gap-3 p-3 border-bottom">
+        <div class="stat-icon stat-icon-blue" style="width:36px;height:36px;border-radius:8px;font-size:.9rem;">
+          {{ loop.index }}
+        </div>
+        <div>
+          <div class="fw-600">{{ p.name }}</div>
+          <div class="text-muted small">
+            {% if p.age %}Age {{ p.age }} · {% endif %}
+            {{ p.gender.title() }}
+            {% if p.id_type %} · {{ p.id_type }}{% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Notice -->
+  <div class="alert-transit alert-transit-warning mb-4">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <div class="small">
+      By confirming, your journey details are recorded in TransitNotice. 
+      You will be directed to the official <strong>{{ route.provider }}</strong> portal 
+      to complete payment and receive your official ticket. 
+      TransitNotice does not issue tickets or process payments directly.
+    </div>
+  </div>
+
+  <form method="POST" action="{{ url_for('booking.confirm_booking') }}">
+    <div class="d-flex gap-3">
+      <a href="{{ url_for('booking.passenger_details') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Back
+      </a>
+      <button type="submit" class="btn btn-search px-4">
+        <i class="bi bi-check2-circle me-2"></i>Confirm & Continue
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

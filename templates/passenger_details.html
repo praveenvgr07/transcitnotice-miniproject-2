@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Passenger Details{% endblock %}
+
+{% block content %}
+<div style="background:linear-gradient(135deg,var(--navy-dark),var(--navy));padding:2rem 0 1rem;">
+  <div class="container">
+    <h1 class="text-white fw-800 mb-0" style="font-size:1.6rem;">
+      <i class="bi bi-people-fill me-2"></i>Passenger Details
+    </h1>
+  </div>
+</div>
+<div class="container py-4">
+  <div class="booking-steps mb-4">
+    <div class="booking-step done"><div class="step-circle"><i class="bi bi-check"></i></div><div class="step-label">Journey Details</div></div>
+    <div class="booking-step active"><div class="step-circle">2</div><div class="step-label">Passengers</div></div>
+    <div class="booking-step"><div class="step-circle">3</div><div class="step-label">Confirm</div></div>
+    <div class="booking-step"><div class="step-circle">4</div><div class="step-label">Done</div></div>
+  </div>
+
+  <form method="POST" action="{{ url_for('booking.passenger_details') }}">
+    {% for i in range(1, count + 1) %}
+    <div class="card-transit mb-3">
+      <div class="card-header-custom"><i class="bi bi-person me-2"></i>Passenger {{ i }}</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-600">Full Name *</label>
+            <input type="text" name="name_{{ i }}" class="form-control" required placeholder="As on ID proof">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label fw-600">Age</label>
+            <input type="number" name="age_{{ i }}" class="form-control" min="1" max="120" placeholder="Age">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label fw-600">Gender</label>
+            <select name="gender_{{ i }}" class="form-select">
+              <option value="unspecified">Prefer not to say</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label fw-600">ID Type</label>
+            <select name="id_type_{{ i }}" class="form-select">
+              <option value="">None</option>
+              <option value="Aadhaar">Aadhaar</option>
+              <option value="PAN">PAN Card</option>
+              <option value="Passport">Passport</option>
+              <option value="DL">Driving Licence</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label fw-600">ID Number</label>
+            <input type="text" name="id_number_{{ i }}" class="form-control" placeholder="Optional">
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="d-flex gap-3">
+      <a href="{{ url_for('booking.book', route_id=pending.route_id) }}"
+         class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Back
+      </a>
+      <button type="submit" class="btn btn-search px-4">
+        Continue to Review <i class="bi bi-arrow-right ms-2"></i>
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

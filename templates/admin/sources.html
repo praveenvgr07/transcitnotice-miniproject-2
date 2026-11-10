@@ -1,0 +1,73 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Data Sources{% endblock %}
+{% block content %}
+<div class="admin-page-header">
+  <div>
+    <h2 class="admin-page-title">Data Sources</h2>
+    <p class="admin-page-sub">Manage transport data source connections and authorization status.</p>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% for src in sources %}
+  <div class="col-md-6">
+    <div class="source-status-card">
+      <div class="source-header">
+        <span class="source-provider-tag tag-{{ src.provider|lower }}">{{ src.provider }}</span>
+        <div class="d-flex gap-2 align-items-center">
+          <span class="status-badge {% if src.fetch_status == 'success' %}status-success{% elif src.fetch_status == 'failed' %}status-failed{% else %}status-disabled{% endif %}">
+            {{ src.fetch_status.replace('_',' ').title() }}
+          </span>
+          <form method="POST" action="{{ url_for('admin.toggle_source', source_id=src.id) }}">
+            <div class="form-check form-switch form-switch-custom">
+              <input class="form-check-input" type="checkbox" role="switch"
+                     onchange="this.form.submit()"
+                     {% if src.is_enabled %}checked{% endif %}
+                     {% if not src.is_authorized %}disabled title="Awaiting authorization"{% endif %}>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="source-name">{{ src.source_name }}</div>
+      <div class="source-url">{{ src.source_url }}</div>
+
+      <div class="mt-2 d-flex gap-2 flex-wrap">
+        {% if src.is_authorized %}
+        <span class="status-badge status-success"><i class="bi bi-patch-check-fill me-1"></i>Authorized</span>
+        {% else %}
+        <span class="status-badge status-failed"><i class="bi bi-exclamation-circle me-1"></i>Pending Auth</span>
+        {% endif %}
+        {% if src.gtfs_feed_url %}
+        <span class="status-badge status-success"><i class="bi bi-file-zip me-1"></i>GTFS Feed</span>
+        {% endif %}
+      </div>
+
+      <div class="source-last-update mt-2">
+        <i class="bi bi-clock me-1"></i>Last fetch:
+        {{ src.last_fetched_at.strftime('%d %b %Y %H:%M IST') if src.last_fetched_at else 'Never' }}
+        <br>
+        <i class="bi bi-check-circle me-1 text-success"></i>Last success:
+        {{ src.last_success_at.strftime('%d %b %Y %H:%M IST') if src.last_success_at else 'Never' }}
+      </div>
+
+      {% if not src.is_authorized %}
+      <div class="alert-transit alert-transit-warning mt-2" style="font-size:.78rem;">
+        <i class="bi bi-exclamation-triangle"></i>
+        Review <a href="{{ src.source_url }}" target="_blank" rel="noopener">robots.txt & ToS</a>
+        before enabling. Authorization required.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="alert-transit alert-transit-info mt-4">
+  <i class="bi bi-shield-check"></i>
+  <div class="small">
+    <strong>Data Ethics:</strong> Only sources with explicit authorization and robots.txt permission 
+    may be enabled. The scraper respects rate limits and identifies itself via User-Agent. 
+    Unauthorized scraping is disabled by design.
+  </div>
+</div>
+{% endblock %}

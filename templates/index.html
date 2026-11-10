@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block meta_description %}TransitNotice – Real-time MTC, TNSTC, SETC and CMRL schedule alerts and journey information for Tamil Nadu, India.{% endblock %}
+
+{% block content %}
+
+<!-- ══ HERO ══════════════════════════════════════════════════ -->
+<section class="hero-section">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <div class="hero-title">
+          Your Journey. Our Information.<br>
+          <span class="highlight">Every Update Matters.</span>
+        </div>
+        <p class="hero-subtitle">
+          Discover transport services, track schedule changes in real time, 
+          receive important journey alerts, and manage your bookings — 
+          all in one platform built for Tamil Nadu.
+        </p>
+        <div class="d-flex gap-3 mt-4 flex-wrap">
+          <a href="{{ url_for('transport.search') }}" class="btn btn-search px-4 py-2">
+            <i class="bi bi-search me-2"></i>Search Services
+          </a>
+          {% if not session.user_id %}
+          <a href="{{ url_for('auth.register') }}" class="btn btn-outline-light px-4 py-2 rounded-3 fw-600">
+            Register Free
+          </a>
+          {% endif %}
+        </div>
+        <div class="hero-stats mt-4">
+          <div class="hero-stat">
+            <span class="number">4</span>
+            <span class="label">Providers</span>
+          </div>
+          <div class="hero-stat">
+            <span class="number">10<small style="font-size:.9rem">min</small></span>
+            <span class="label">Update Cycle</span>
+          </div>
+          <div class="hero-stat">
+            <span class="number">24/7</span>
+            <span class="label">Monitoring</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 d-none d-lg-flex justify-content-center">
+        <!-- SVG Transport Illustration -->
+        <svg viewBox="0 0 420 300" fill="none" xmlns="http://www.w3.org/2000/svg" style="max-width:420px;width:100%;">
+          <rect x="20" y="120" width="220" height="120" rx="20" fill="#2d5086" opacity=".9"/>
+          <rect x="30" y="130" width="60" height="45" rx="6" fill="#e0f2fe" opacity=".8"/>
+          <rect x="100" y="130" width="60" height="45" rx="6" fill="#e0f2fe" opacity=".8"/>
+          <rect x="170" y="130" width="60" height="45" rx="6" fill="#e0f2fe" opacity=".8"/>
+          <circle cx="60"  cy="240" r="22" fill="#1e3a5f" stroke="#e0f2fe" stroke-width="4"/>
+          <circle cx="60"  cy="240" r="10" fill="#0ea5e9"/>
+          <circle cx="200" cy="240" r="22" fill="#1e3a5f" stroke="#e0f2fe" stroke-width="4"/>
+          <circle cx="200" cy="240" r="10" fill="#0ea5e9"/>
+          <rect x="0" y="235" width="280" height="8" rx="4" fill="#122540" opacity=".6"/>
+          <!-- Metro train -->
+          <rect x="270" y="60" width="130" height="80" rx="10" fill="#9d174d" opacity=".85"/>
+          <rect x="278" y="68" width="35" height="30" rx="4" fill="#fce7f3" opacity=".9"/>
+          <rect x="320" y="68" width="35" height="30" rx="4" fill="#fce7f3" opacity=".9"/>
+          <circle cx="290" cy="145" r="14" fill="#7e1252" stroke="#fce7f3" stroke-width="3"/>
+          <circle cx="290" cy="145" r="6" fill="#f9a8d4"/>
+          <circle cx="370" cy="145" r="14" fill="#7e1252" stroke="#fce7f3" stroke-width="3"/>
+          <circle cx="370" cy="145" r="6" fill="#f9a8d4"/>
+          <rect x="260" y="138" width="160" height="5" rx="2.5" fill="#500724" opacity=".7"/>
+          <!-- Notification ping -->
+          <circle cx="340" cy="30" r="18" fill="#0ea5e9" opacity=".9"/>
+          <text x="333" y="36" fill="white" font-size="16" font-weight="bold">!</text>
+          <circle cx="340" cy="30" r="24" fill="none" stroke="#0ea5e9" stroke-width="2" opacity=".4">
+            <animate attributeName="r" from="18" to="36" dur="1.5s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" from=".5" to="0" dur="1.5s" repeatCount="indefinite"/>
+          </circle>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SEARCH PANEL ══════════════════════════════════════════ -->
+<div class="container">
+  <div class="search-panel mt-n4 fade-in">
+    <div class="panel-title">
+      <i class="bi bi-search-heart text-primary"></i> Find Your Service
+    </div>
+    <form method="GET" action="{{ url_for('transport.search') }}" id="search-form">
+      <div class="row g-3">
+        <div class="col-md-2">
+          <label class="form-label fw-600 small">Provider</label>
+          <select name="provider" class="form-select" id="provider-select">
+            <option value="">All Providers</option>
+            <option value="MTC">MTC Chennai</option>
+            <option value="TNSTC">TNSTC</option>
+            <option value="SETC">SETC</option>
+            <option value="CMRL">CMRL Metro</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-600 small">From</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt text-primary"></i></span>
+            <input type="text" name="origin" id="origin" class="form-control border-start-0" placeholder="Origin / Area" autocomplete="off">
+          </div>
+        </div>
+        <div class="col-auto d-flex align-items-end pb-1">
+          <button type="button" id="btn-swap" class="btn btn-outline-secondary rounded-circle p-2" title="Swap">
+            <i class="bi bi-arrow-left-right"></i>
+          </button>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-600 small">To</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-geo-alt-fill text-danger"></i></span>
+            <input type="text" name="destination" id="destination" class="form-control border-start-0" placeholder="Destination" autocomplete="off">
+          </div>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-600 small">Travel Date</label>
+          <input type="date" name="travel_date" id="travel-date" class="form-control">
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+          <button type="submit" class="btn btn-search w-100">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ PROVIDERS ════════════════════════════════════════════ -->
+<section class="py-5">
+  <div class="container">
+    <div class="section-title">Transport Providers</div>
+    <div class="section-divider"></div>
+    <div class="row g-4">
+      {% set providers = [
+        ('MTC',   'bi-bus-front-fill',  'provider-mtc',   'Metropolitan Transport Corporation',  'City bus services across Greater Chennai metropolitan area.'),
+        ('TNSTC', 'bi-bus-front',       'provider-tnstc', 'Tamil Nadu State Transport Corp.',     'Inter-city and district bus services across Tamil Nadu.'),
+        ('SETC',  'bi-truck-front-fill','provider-setc',  'State Express Transport Corporation',  'Long-distance express and AC coach services.'),
+        ('CMRL',  'bi-train-front-fill','provider-cmrl',  'Chennai Metro Rail Limited',           'Rapid urban metro rail with stations across Chennai.'),
+      ] %}
+      {% for code, icon, cls, name, desc in providers %}
+      <div class="col-6 col-lg-3">
+        <a href="{{ url_for('transport.search') }}?provider={{ code }}" class="text-decoration-none">
+          <div class="provider-card {{ cls }}">
+            <div class="provider-icon">
+              <i class="bi {{ icon }}"></i>
+            </div>
+            <div class="provider-name">{{ code }}</div>
+            <div class="provider-desc">{{ name }}</div>
+            <p class="mt-2 mb-0" style="font-size:.78rem;color:#64748b;">{{ desc }}</p>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ══ LATEST UPDATES ═══════════════════════════════════════ -->
+{% if announcements %}
+<section class="py-4" style="background:#f8fafc;">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <div>
+        <div class="section-title mb-0">Latest Service Updates</div>
+        <p class="section-subtitle mt-1">Verified announcements from official transport sources.</p>
+      </div>
+      <span class="pulse-dot me-2"></span>
+    </div>
+    <div class="row g-3">
+      {% for ann in announcements %}
+      <div class="col-md-6">
+        <div class="announcement-card severity-{{ ann.severity }}">
+          <div class="d-flex align-items-start justify-content-between gap-2">
+            <div>
+              <div class="announcement-title">{{ ann.title }}</div>
+              <div class="announcement-meta">
+                <span class="route-provider-badge badge-{{ ann.provider|lower }}">{{ ann.provider }}</span>
+                <span class="ms-2">{{ ann.announcement_type.replace('_', ' ').title() }}</span>
+                {% if ann.is_verified %}
+                <span class="ms-2 text-success"><i class="bi bi-patch-check-fill"></i> Verified</span>
+                {% endif %}
+              </div>
+              <p class="mt-1 mb-0" style="font-size:.82rem;color:#374151;">{{ ann.body[:120] }}{% if ann.body|length > 120 %}…{% endif %}</p>
+            </div>
+            <span class="status-badge {% if ann.severity == 'critical' %}status-failed{% elif ann.severity == 'warning' %}status-pending{% else %}status-success{% endif %} flex-shrink-0">
+              {{ ann.severity.title() }}
+            </span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ══ HOW IT WORKS ══════════════════════════════════════════ -->
+<section class="py-5">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-title">How TransitNotice Works</div>
+      <div class="section-divider mx-auto"></div>
+      <p class="section-subtitle mx-auto">Automated monitoring that keeps you informed every step of the way.</p>
+    </div>
+    <div class="row g-4">
+      {% set steps = [
+        ('1', 'bi-cloud-download', 'Data Collection', 'We fetch verified schedules and announcements from official transport sources every 10 minutes.'),
+        ('2', 'bi-cpu',           'Change Detection', 'Our engine compares new data against stored records and detects any schedule modifications.'),
+        ('3', 'bi-bell-fill',     'Instant Alerts',   'You receive an email and SMS notification the moment a change affects your booked journey.'),
+        ('4', 'bi-ticket-perforated', 'Booking Support', 'Search services, view schedules, and link to official booking portals for your journey.'),
+      ] %}
+      {% for num, icon, title, desc in steps %}
+      <div class="col-sm-6 col-lg-3">
+        <div class="step-card">
+          <div class="step-number">{{ num }}</div>
+          <i class="bi {{ icon }} fs-2 text-primary mb-3 d-block"></i>
+          <div class="step-title">{{ title }}</div>
+          <div class="step-desc">{{ desc }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ══ FEATURES ══════════════════════════════════════════════ -->
+<section class="py-5" style="background:linear-gradient(135deg,#1e3a5f,#2d5086);">
+  <div class="container">
+    <div class="text-center text-white mb-5">
+      <div class="section-title" style="color:#fff;">Platform Features</div>
+      <div class="section-divider mx-auto"></div>
+    </div>
+    <div class="row g-4">
+      {% set features = [
+        ('bi-shield-check',        '#0ea5e9', 'Official Data Only',      'All information is sourced exclusively from authorized official transport feeds.'),
+        ('bi-clock-history',       '#10b981', 'Real-Time Monitoring',    'Background scheduler checks every source every 10 minutes, around the clock.'),
+        ('bi-envelope-at-fill',    '#f59e0b', 'Email & SMS Alerts',      'Instant delivery to your inbox and mobile when your journey is affected.'),
+        ('bi-phone',               '#0ea5e9', 'Mobile Friendly',         'Fully responsive interface optimized for mobile, tablet, and desktop.'),
+        ('bi-person-check-fill',   '#10b981', 'Account & Preferences',   'Manage notification preferences, saved routes, and booking history.'),
+        ('bi-graph-up-arrow',      '#f59e0b', 'Change History',          'Full audit trail of every detected schedule change with timestamps.'),
+      ] %}
+      {% for icon, color, title, desc in features %}
+      <div class="col-md-4">
+        <div class="d-flex gap-3 align-items-start p-3" style="background:rgba(255,255,255,.08);border-radius:12px;">
+          <div style="width:44px;height:44px;border-radius:10px;background:{{ color }}20;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bi {{ icon }}" style="color:{{ color }};font-size:1.2rem;"></i>
+          </div>
+          <div>
+            <div style="font-weight:700;color:#fff;margin-bottom:.25rem;">{{ title }}</div>
+            <div style="font-size:.83rem;color:rgba(255,255,255,.7);">{{ desc }}</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% if not session.user_id %}
+    <div class="text-center mt-5">
+      <a href="{{ url_for('auth.register') }}" class="btn btn-search px-5 py-3 fs-6">
+        <i class="bi bi-person-plus-fill me-2"></i>Create Free Account
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- ══ SOURCE STATUS ═════════════════════════════════════════ -->
+<section class="py-4">
+  <div class="container">
+    <div class="section-title mb-1">Data Source Status</div>
+    <p class="section-subtitle mb-3">Current connection status of each transport provider's data feed.</p>
+    <div class="row g-3">
+      {% for src in sources %}
+      <div class="col-md-6 col-lg-3">
+        <div class="source-status-card">
+          <div class="source-header">
+            <span class="source-provider-tag tag-{{ src.provider|lower }}">{{ src.provider }}</span>
+            <span class="status-badge {% if src.fetch_status == 'success' %}status-success{% elif src.fetch_status == 'failed' %}status-failed{% elif src.is_enabled %}status-pending{% else %}status-disabled{% endif %}">
+              <span class="source-indicator {% if src.fetch_status == 'success' %}freshness-fresh{% elif src.fetch_status == 'failed' %}freshness-failed{% else %}freshness-stale{% endif %}"></span>
+              {{ src.fetch_status.replace('_',' ').title() if src.is_enabled else 'Pending Auth' }}
+            </span>
+          </div>
+          <div class="source-name">{{ src.source_name }}</div>
+          {% if src.last_success_at %}
+          <div class="source-last-update">
+            <i class="bi bi-clock me-1"></i>Last update: {{ src.last_success_at.strftime('%d %b %H:%M') if src.last_success_at else '—' }}
+          </div>
+          {% else %}
+          <div class="source-last-update text-muted"><i class="bi bi-info-circle me-1"></i>Awaiting authorization</div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+{% endblock %}

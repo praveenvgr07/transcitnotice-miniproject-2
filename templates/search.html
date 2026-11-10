@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}Search Services{% endblock %}
+
+{% block content %}
+<div style="background:linear-gradient(135deg,var(--navy-dark),var(--navy));padding:2.5rem 0 1.5rem;">
+  <div class="container">
+    <h1 class="text-white fw-800 mb-1" style="font-size:1.8rem;">
+      <i class="bi bi-search me-2 text-primary"></i>Search Transport Services
+    </h1>
+    <p style="color:rgba(255,255,255,.7);font-size:.9rem;">
+      Find MTC, TNSTC, SETC and CMRL services based on verified official data.
+    </p>
+
+    <!-- Search Form -->
+    <form method="GET" action="{{ url_for('transport.search') }}" id="search-form" class="mt-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-6 col-md-2">
+          <label class="form-label text-white small fw-600">Provider</label>
+          <select name="provider" class="form-select form-select-sm" id="provider-select">
+            <option value="">All</option>
+            {% for p in providers %}
+            <option value="{{ p }}" {% if form.get('provider') == p %}selected{% endif %}>{{ p }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label text-white small fw-600">From</label>
+          <input type="text" name="origin" id="origin" class="form-control form-control-sm"
+                 value="{{ form.get('origin','') }}" placeholder="Origin stop or area">
+        </div>
+        <div class="col-auto d-flex align-items-end">
+          <button type="button" id="btn-swap" class="btn btn-sm btn-outline-light mb-0" title="Swap">
+            <i class="bi bi-arrow-left-right"></i>
+          </button>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label text-white small fw-600">To</label>
+          <input type="text" name="destination" id="destination" class="form-control form-control-sm"
+                 value="{{ form.get('destination','') }}" placeholder="Destination">
+        </div>
+        <div class="col-6 col-md-2">
+          <label class="form-label text-white small fw-600">Date</label>
+          <input type="date" name="travel_date" id="travel-date" class="form-control form-control-sm"
+                 value="{{ form.get('travel_date','') }}">
+        </div>
+        <div class="col-6 col-md-1">
+          <button type="submit" class="btn btn-search w-100">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Route number search -->
+      <div class="row g-2 mt-1">
+        <div class="col-md-3">
+          <input type="text" name="route_number" class="form-control form-control-sm"
+                 value="{{ form.get('route_number','') }}"
+                 placeholder="Or search by route number (e.g. 21C)">
+        </div>
+        <div class="col-md-2">
+          <select name="service_type" class="form-select form-select-sm">
+            <option value="">All service types</option>
+            <option value="Ordinary" {% if form.get('service_type')=='Ordinary' %}selected{% endif %}>Ordinary</option>
+            <option value="Express"  {% if form.get('service_type')=='Express'  %}selected{% endif %}>Express</option>
+            <option value="AC"       {% if form.get('service_type')=='AC'       %}selected{% endif %}>AC</option>
+            <option value="Metro"    {% if form.get('service_type')=='Metro'    %}selected{% endif %}>Metro</option>
+          </select>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="container py-4">
+
+  <!-- Provider filter pills -->
+  <div class="d-flex gap-2 flex-wrap mb-3">
+    <a href="{{ url_for('transport.search') }}" class="btn btn-sm {% if not form.get('provider') %}btn-primary{% else %}btn-outline-secondary{% endif %} rounded-pill">
+      All Providers
+    </a>
+    {% for p in providers %}
+    <a href="{{ url_for('transport.search') }}?provider={{ p }}"
+       class="btn btn-sm {% if form.get('provider') == p %}btn-primary{% else %}btn-outline-secondary{% endif %} rounded-pill provider-filter-card"
+       data-provider="{{ p }}">
+      {{ p }}
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Result count -->
+  <p id="result-count" class="text-muted small mb-3"></p>
+
+  {% if searched %}
+    {% if results %}
+      {% for route in results %}
+      <div class="route-card fade-in">
+        <div class="d-flex align-items-start justify-content-between gap-2 flex-wrap">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="route-number">{{ route.route_number }}</span>
+            <span class="route-provider-badge badge-{{ route.provider|lower }}">{{ route.provider }}</span>
+            {% if route.service_type %}
+            <span class="badge bg-light text-dark border">{{ route.service_type }}</span>
+            {% endif %}
+          </div>
+          <div class="d-flex gap-2">
+            <!-- Save route form -->
+            {% if session.user_id %}
+            <form method="POST" action="{{ url_for('user.save_route') }}" class="d-inline">
+              <input type="hidden" name="route_id" value="{{ route.id }}">
+              <input type="hidden" name="origin" value="{{ route.origin }}">
+              <input type="hidden" name="destination" value="{{ route.destination }}">
+              <input type="hidden" name="provider" value="{{ route.provider }}">
+              <button type="submit" class="btn btn-sm btn-outline-warning btn-save-route" title="Save route">
+                <i class="bi bi-bookmark"></i>
+              </button>
+            </form>
+            {% endif %}
+            <a href="{{ url_for('transport.service_details', route_id=route.id) }}{% if form.get('travel_date') %}?date={{ form.get('travel_date') }}{% endif %}"
+               class="btn btn-sm btn-outline-primary">
+              View Details <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="route-origin-dest mt-2">
+          <i class="bi bi-geo-alt text-primary"></i>
+          {{ route.origin }}
+          <span class="arrow">→</span>
+          <i class="bi bi-geo-alt-fill text-danger"></i>
+          {{ route.destination }}
+        </div>
+
+        {% if route.route_name %}
+        <div class="text-muted small mt-1">{{ route.route_name }}</div>
+        {% endif %}
+
+        <div class="d-flex align-items-center gap-3 mt-2 flex-wrap">
+          <div class="data-freshness">
+            <span class="freshness-dot {% if route.fetch_status == 'success' %}freshness-fresh{% elif route.fetch_status == 'failed' %}freshness-failed{% else %}freshness-stale{% endif %}"></span>
+            Source: {{ route.source_name }}
+          </div>
+          {% if route.last_success_at %}
+          <div class="data-freshness">
+            <i class="bi bi-clock"></i>
+            Updated: {{ route.last_success_at.strftime('%d %b %Y %H:%M') if route.last_success_at else '—' }}
+          </div>
+          {% endif %}
+
+          {% if session.user_id %}
+          <a href="{{ url_for('booking.book', route_id=route.id) }}{% if form.get('travel_date') %}?date={{ form.get('travel_date') }}{% endif %}"
+             class="btn btn-sm btn-primary ms-auto">
+            <i class="bi bi-calendar-check me-1"></i>Book Journey
+          </a>
+          {% else %}
+          <a href="{{ url_for('auth.login') }}?next={{ request.url }}" class="btn btn-sm btn-outline-primary ms-auto">
+            Login to Book
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+
+    {% else %}
+      <div class="empty-state py-5">
+        <i class="bi bi-bus-front d-block fs-1 mb-3" style="opacity:.25;"></i>
+        <h5 class="fw-700 text-muted">No services found</h5>
+        <p class="text-muted">
+          No routes match your search criteria. This may mean:
+        </p>
+        <ul class="text-start text-muted d-inline-block" style="font-size:.88rem;">
+          <li>Data collection for this provider is pending authorization</li>
+          <li>The route number or stops entered do not match official records</li>
+          <li>The selected provider currently has no available data</li>
+        </ul>
+        <p class="text-muted small mt-3">
+          <i class="bi bi-info-circle me-1"></i>
+          Data is sourced exclusively from official, authorized transport feeds.
+        </p>
+        <a href="{{ url_for('transport.search') }}" class="btn btn-outline-primary mt-2">Clear Search</a>
+      </div>
+    {% endif %}
+
+  {% else %}
+    <!-- Not yet searched -->
+    <div class="empty-state py-4">
+      <i class="bi bi-search d-block fs-1 mb-3" style="opacity:.2;"></i>
+      <p class="text-muted">Enter origin, destination, or route number above to search.</p>
+    </div>
+
+    <!-- Provider quick-access cards -->
+    <h5 class="fw-700 text-navy mb-3">Browse by Provider</h5>
+    <div class="row g-3">
+      {% for code, icon, cls, name, desc in [
+        ('MTC',   'bi-bus-front-fill',  'provider-mtc',   'MTC Chennai',          'City buses across Greater Chennai.'),
+        ('TNSTC', 'bi-bus-front',       'provider-tnstc', 'TNSTC',               'District & inter-city buses.'),
+        ('SETC',  'bi-truck-front-fill','provider-setc',  'SETC Express',         'Long-distance express coaches.'),
+        ('CMRL',  'bi-train-front-fill','provider-cmrl',  'Chennai Metro Rail',   'Metro rail network, Chennai.'),
+      ] %}
+      <div class="col-6 col-lg-3">
+        <a href="{{ url_for('transport.search') }}?provider={{ code }}" class="text-decoration-none">
+          <div class="provider-card {{ cls }}">
+            <div class="provider-icon"><i class="bi {{ icon }}"></i></div>
+            <div class="provider-name">{{ code }}</div>
+            <div class="provider-desc">{{ name }}</div>
+            <p class="mt-1 mb-0" style="font-size:.76rem;color:#64748b;">{{ desc }}</p>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+{% endblock %}

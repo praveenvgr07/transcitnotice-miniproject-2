@@ -1,0 +1,59 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Announcements{% endblock %}
+{% block content %}
+<div class="admin-page-header">
+  <div>
+    <h2 class="admin-page-title">Service Announcements</h2>
+    <p class="admin-page-sub">Official transport service announcements and notices.</p>
+  </div>
+  <a href="{{ url_for('admin.new_announcement') }}" class="btn btn-sm btn-primary">
+    <i class="bi bi-plus-lg me-1"></i>New Announcement
+  </a>
+</div>
+
+{% if announcements %}
+<div class="table-transit">
+  <table class="table mb-0">
+    <thead>
+      <tr>
+        <th>Provider</th>
+        <th>Title</th>
+        <th>Type</th>
+        <th>Severity</th>
+        <th>Verified</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ann in announcements %}
+      <tr>
+        <td><span class="source-provider-tag tag-{{ ann.provider|lower }}">{{ ann.provider }}</span></td>
+        <td>
+          <div class="fw-600 small">{{ ann.title }}</div>
+          <div class="text-muted" style="font-size:.75rem;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+            {{ ann.body }}
+          </div>
+        </td>
+        <td class="small text-capitalize">{{ ann.announcement_type.replace('_', ' ') }}</td>
+        <td>
+          <span class="status-badge {% if ann.severity == 'critical' %}status-failed{% elif ann.severity == 'warning' %}status-pending{% else %}status-success{% endif %}">
+            {{ ann.severity.title() }}
+          </span>
+        </td>
+        <td>
+          {% if ann.is_verified %}<i class="bi bi-patch-check-fill text-success"></i>{% else %}<i class="bi bi-x-circle text-muted"></i>{% endif %}
+        </td>
+        <td class="small text-muted">{{ ann.created_at.strftime('%d %b %Y %H:%M') if ann.created_at else '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state py-5">
+  <i class="bi bi-megaphone d-block fs-1 mb-3"></i>
+  <h5 class="text-muted">No announcements</h5>
+  <a href="{{ url_for('admin.new_announcement') }}" class="btn btn-primary mt-2">Create First Announcement</a>
+</div>
+{% endif %}
+{% endblock %}

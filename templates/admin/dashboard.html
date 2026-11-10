@@ -1,0 +1,119 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="admin-page-header">
+  <div>
+    <h2 class="admin-page-title">Dashboard</h2>
+    <p class="admin-page-sub">Overview of TransitNotice platform health and activity.</p>
+  </div>
+  <button id="btn-run-collection" class="btn btn-sm btn-primary">
+    <i class="bi bi-play-fill me-1"></i>Run Collection Now
+  </button>
+</div>
+
+<!-- Stats -->
+<div class="admin-stats-grid mb-4">
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-blue"><i class="bi bi-people-fill"></i></div>
+    <div><div class="stat-value">{{ stats.total_users }}</div><div class="stat-label">Total Users</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-green"><i class="bi bi-ticket-perforated"></i></div>
+    <div><div class="stat-value">{{ stats.total_bookings }}</div><div class="stat-label">Total Bookings</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-blue"><i class="bi bi-database-check"></i></div>
+    <div><div class="stat-value">{{ stats.active_sources }}/{{ stats.total_sources }}</div><div class="stat-label">Active Sources</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon {% if stats.failed_deliveries > 0 %}stat-icon-red{% else %}stat-icon-green{% endif %}">
+      <i class="bi bi-envelope-x"></i>
+    </div>
+    <div>
+      <div class="stat-value">{{ stats.failed_deliveries }}</div>
+      <div class="stat-label">Failed Deliveries</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Source Status -->
+  <div class="col-lg-5">
+    <div class="card-transit">
+      <div class="card-header-custom d-flex justify-content-between">
+        <span><i class="bi bi-database me-2"></i>Source Status</span>
+        <a href="{{ url_for('admin.sources') }}" class="text-white opacity-75 small">Manage →</a>
+      </div>
+      <div class="card-body p-0">
+        {% for src in sources %}
+        <div class="source-row">
+          <span class="source-indicator {% if src.fetch_status == 'success' %}freshness-fresh{% elif src.fetch_status == 'failed' %}freshness-failed{% elif src.is_enabled %}freshness-stale{% else %}bg-secondary{% endif %}"></span>
+          <span class="source-provider-tag tag-{{ src.provider|lower }}">{{ src.provider }}</span>
+          <div class="flex-grow-1">
+            <div class="small fw-600">{{ src.source_name }}</div>
+            <div class="text-muted" style="font-size:.72rem;">
+              {{ src.fetch_status.replace('_',' ').title() if src.is_enabled else 'Disabled' }}
+              {% if src.last_success_at %} · {{ src.last_success_at.strftime('%H:%M') }}{% endif %}
+            </div>
+          </div>
+          <span class="status-badge {% if src.fetch_status == 'success' %}status-success{% elif src.fetch_status == 'failed' %}status-failed{% elif not src.is_enabled %}status-disabled{% else %}status-pending{% endif %}">
+            {{ '✓' if src.fetch_status == 'success' else '!' if src.fetch_status == 'failed' else '–' }}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Scheduler Jobs -->
+  <div class="col-lg-3">
+    <div class="card-transit">
+      <div class="card-header-custom"><i class="bi bi-clock me-2"></i>Scheduler</div>
+      <div class="card-body p-0">
+        {% if jobs %}
+          {% for job in jobs %}
+          <div class="p-3 border-bottom">
+            <div class="small fw-600">{{ job.name }}</div>
+            <div class="text-muted" style="font-size:.75rem;">
+              <i class="bi bi-arrow-clockwise me-1"></i>Next: {{ job.next_run }}
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="p-3 text-muted small">
+            <i class="bi bi-pause-circle me-1"></i>Scheduler not running.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Changes -->
+  <div class="col-lg-4">
+    <div class="card-transit">
+      <div class="card-header-custom d-flex justify-content-between">
+        <span><i class="bi bi-arrow-repeat me-2"></i>Recent Changes</span>
+        <a href="{{ url_for('admin.changes') }}" class="text-white opacity-75 small">All →</a>
+      </div>
+      <div class="card-body p-0">
+        {% if recent_changes %}
+          {% for ch in recent_changes %}
+          <div class="change-row">
+            <span class="change-type-badge ct-{{ ch.change_type.split('_')[0] }}">{{ ch.change_type.split('_')[0] }}</span>
+            <div class="flex-grow-1" style="font-size:.8rem;">
+              <span class="route-provider-badge badge-{{ ch.provider|lower }}">{{ ch.provider }}</span>
+              <strong class="ms-1">{{ ch.route_number }}</strong>
+              <div class="text-muted" style="font-size:.72rem;">{{ ch.detected_at.strftime('%d %b %H:%M') if ch.detected_at else '' }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="p-3 text-muted small">No changes detected recently.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
